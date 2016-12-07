@@ -12,33 +12,37 @@
 #include <TChain.h>
 #include <TFile.h>
 
+#include <TRefArray.h>
+#include <TRef.h>
+#include <TLorentzVector.h>
+
 // Header file for the classes stored in the TTree if any.
 #include "TClonesArray.h"
 #include "TObject.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
 
+// Fixed size dimensions of array or collections stored in the TTree if any.
+const Int_t kMaxEvent = 1;
+const Int_t kMaxParticle = 4635;
+const Int_t kMaxTrack = 246;
+const Int_t kMaxTower = 508;
+const Int_t kMaxEFlowTrack = 246;
+const Int_t kMaxEFlowPhoton = 217;
+const Int_t kMaxEFlowNeutralHadron = 239;
+const Int_t kMaxGenJet = 15;
+const Int_t kMaxGenMissingET = 1;
+const Int_t kMaxJet = 15;
+const Int_t kMaxElectron = 1;
+const Int_t kMaxPhoton = 1;
+const Int_t kMaxMuon = 1;
+const Int_t kMaxMissingET = 1;
+const Int_t kMaxScalarHT = 1;
+
 class AnaTree {
 public :
    TTree          *fChain;   //!pointer to the analyzed TTree or TChain
    Int_t           fCurrent; //!current Tree number in a TChain
-
-// Fixed size dimensions of array or collections stored in the TTree if any.
-   const Int_t kMaxEvent = 1;
-   const Int_t kMaxParticle = 4635;
-   const Int_t kMaxTrack = 246;
-   const Int_t kMaxTower = 508;
-   const Int_t kMaxEFlowTrack = 246;
-   const Int_t kMaxEFlowPhoton = 217;
-   const Int_t kMaxEFlowNeutralHadron = 239;
-   const Int_t kMaxGenJet = 15;
-   const Int_t kMaxGenMissingET = 1;
-   const Int_t kMaxJet = 15;
-   const Int_t kMaxElectron = 1;
-   const Int_t kMaxPhoton = 1;
-   const Int_t kMaxMuon = 1;
-   const Int_t kMaxMissingET = 1;
-   const Int_t kMaxScalarHT = 1;
 
    // Declaration of leaf types
    Int_t           Event_;
