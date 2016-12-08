@@ -1,6 +1,7 @@
 void loadlibs(){
 
-  const char* path = "/Users/ceciliamac/AMVA4NP/selection/HH4bSelection";
+  //const char* path = "/Users/ceciliamac/AMVA4NP/selection/HH4bSelection";
+  const char* path = ".";
   if ( path ) {
     TString libs = gSystem->GetDynamicPath();
     libs += ":";
