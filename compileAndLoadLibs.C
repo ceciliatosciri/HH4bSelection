@@ -1,4 +1,6 @@
-void loadLibs(){
+void compileAndLoadLibs(){
+
+  gROOT->ProcessLine(".L AnaTree.C+");
 
   //const char* path = "/Users/ceciliamac/AMVA4NP/selection/HH4bSelection";
   const char* path = ".";

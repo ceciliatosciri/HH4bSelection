@@ -7,13 +7,13 @@ void analysis(string pattern_signal = "/Users/ceciliamac/AMVA4NP/selection/MG5_p
   csignal = new TChain("Delphes");
   csignal->Add(pattern_signal.c_str());
   cout << "Number of signal files: " << csignal->GetNtrees() << endl;
-  
+
   // Chain for the background
   TChain *cbckg;
   cbckg = new TChain("Delphes");
   cbckg->Add(pattern_background.c_str());
-  cout << "Number of background files: " << cbckg->GetNtrees() << endl;
-  
+  cout << "Number of background files: " << cbckg->GetNtrees() << endl;  
+
   // Instantiate and initialise classes for signal and background
   AnaTree signalTree(csignal);
   AnaTree bckgTree(cbckg);
