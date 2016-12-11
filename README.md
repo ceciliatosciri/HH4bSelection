@@ -15,5 +15,5 @@ root -l
 ## Run
 
 ```
-root -l loadlibs.C analysis.C
+root -l compileAndLoadLibs.C analysis.C
 ```
