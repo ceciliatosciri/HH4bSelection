@@ -129,7 +129,7 @@ void AnaTree::Loop()
         }
         
         double invMass1, invMass2;
-        int bestFirst, bestSecond;
+        int bestFirst, bestSecond=0;
         
         TLorentzVector vjetTemp1, vjetTemp2, couple1, couple2;
         double diffNew, diffOld = 1e9;
