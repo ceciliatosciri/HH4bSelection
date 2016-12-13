@@ -1,3 +1,6 @@
+/*void analysis(string pattern = "/data/amva4np/samples/signal/non_res_diHiggs/bbbb/Delphes_output/MG5_pp_hh_bbbb_13TeV_10M_py8_Forced/MG5_pp_hh_13TeV_10M_py8_Forced_4900000_to_5000000.root") {
+*/
+
 void analysis(string option = "signal") {
  
   string pattern;
@@ -13,7 +16,9 @@ void analysis(string option = "signal") {
   if(option == "bkg_tt_bbjjjj")
       pattern = "/data/amva4np/samples/background/ttbar/ttbar_fully_hadronic/Delphes_output/pp_tt_bbjjjj_13TeV_10M_py8/pp_tt_bbjjjj_13TeV_10M_py8_*_to_*.root";
     //string pattern_background ="genereic_to_*_.root"
-   
+
+
+  
   // Chain
   TChain *ch;
   ch = new TChain("Delphes");

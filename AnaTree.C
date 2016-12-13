@@ -32,6 +32,7 @@ void AnaTree::Loop()
     //    fChain->GetEntry(jentry);       //read all branches
     //by  b_branchname->GetEntry(ientry); //read only this branch
 
+    bool _verbose = false;
 
     double weight = -9999;
     TString outFileName;
@@ -39,30 +40,47 @@ void AnaTree::Loop()
     if (fileName.Contains("pp_hh")) {
       weight = 1.45175E-02;
       outFileName = "signal.root";
-    } else if(fileName.Contains("pp_4j")){
+      std::cout << "Running selection on SIGNAL." << std::endl;
+    } else if(fileName.Contains("pp_jjjj")){
       weight = 1.44718E+07; 
       outFileName = "background_4j.root";
-    } else if (fileName.Contains("pp_4b")) {
+      std::cout << "Running selection on BACKGROUND 4j." << std::endl;
+    } else if (fileName.Contains("pp_bbbb")) {
       weight = 1.74712E+03;
       outFileName = "background_4b.root";
-    } else {
+      std::cout << "Running selection on BACKGROUND 4b." << std::endl;
+    } else if (fileName.Contains("pp_bbjj")) {
+      weight = 4.25359E+05;
+      outFileName = "background_2b2j.root";
+      std::cout << "Running selection on BACKGROUND 2b2j." << std::endl;
+    } else if (fileName.Contains("pp_tt_bbjjjj")) {
+      weight = 2.04390E+02;
+      outFileName = "background_tt_bbjjjj.root";
+      std::cout << "Running selection on BACKGROUND tt_bbjjjj." << std::endl;
+    }
+    else {
       std::cout << "ERROR: Can't determine weight from file name. Exiting now!" << std::endl;
       exit(0);
     }
 
+    std::cout << "WARNING! Overwriting weight. Weight will now be 1." << std::endl;
+    weight = 1.;
+
     std::cout << "Using weight = " << weight << std::endl;
 
-    TH1F *hDeltaR             = new TH1F ("hDeltaR" ,        ";DeltaR;Events",            100,0,1);
-    TH1F *h_number_jets       = new TH1F ("hnumber_jets" ,   ";# of jets;Events",         12,0,12);
-    TH1F *h_number_Bjets      = new TH1F ("hnumberBjets" ,   ";# B-jets;Events",          7,0,7);
-    TH1F *h_PT_jets           = new TH1F ("h_PT_jets" ,      ";P_{t} jets [GeV];Events",  20,0,350);
-    TH1F *h_PT_Bjets          = new TH1F ("hPTBjets" ,       ";P_{t} Bjets [GeV];Events", 20,0,350);
-    TH1F *h_Eta_Bjets         = new TH1F ("hEtaBjets" ,      ";Eta ;Events",              20,-4,4);
-    TH1F *h_lead_inv_mass     = new TH1F ("hLeadInvMass" ,   ";M_{Hlead} [GeV];Events",   125,0,350);
-    TH1F *h_sub_inv_mass      = new TH1F ("hSubInvMass" ,    ";M_{Hsub} [GeV];Events",    125,0,350);
-    TH1F *h_lead_inv_mass_cut = new TH1F ("hLeadInvMassCut", ";M_{Hlead} [GeV];Events",   125,0,350);
-    TH1F *h_sub_inv_mass_cut  = new TH1F ("hSubInvMassCut" , ";M_{Hsub} [GeV];Events",    125,0,350);
-    
+    TH1F *hDeltaR             = new TH1F ("hDeltaR" ,        ";DeltaR;Events",              100,0,1);
+    TH1F *h_number_jets       = new TH1F ("hnumber_jets" ,   ";Number of jets;Entries",     12,-0.5,11.5);
+    TH1F *h_number_Bjets      = new TH1F ("hnumberBjets" ,   ";Number of b-jets;Entries",   7,-0.5,6.5);
+    TH1F *h_PT_jets           = new TH1F ("h_PT_jets" ,      ";p_{T} jets [GeV];Entries",   20,0,350);
+    TH1F *h_PT_Bjets          = new TH1F ("hPTBjets" ,       ";p_{T} b-jets [GeV];Entries", 20,0,350);
+    TH1F *h_Eta_Bjets         = new TH1F ("hEtaBjets" ,      ";#eta b-jets ;Entries",       20,-4,4);
+    TH1F *h_lead_inv_mass     = new TH1F ("hLeadInvMass" ,   ";M_{H}^{lead} [GeV];Entries", 125,0,350);
+    TH1F *h_sub_inv_mass      = new TH1F ("hSubInvMass" ,    ";M_{H}^{sub} [GeV];Entries",  125,0,350);
+    TH1F *h_lead_inv_mass_cut = new TH1F ("hLeadInvMassCut", ";M_{H}^{lead} [GeV];Entries", 125,0,350);
+    TH1F *h_sub_inv_mass_cut  = new TH1F ("hSubInvMassCut" , ";M_{H}^{sub} [GeV];Entries",  125,0,350);
+    TH1F *h_diHiggs_mass      = new TH1F ("hdiHiggsMass" ,   ";M_{HH} [GeV];Entries",       300,0,900);
+    TH1F *h_diHiggs_pT        = new TH1F ("hdiHiggsPt" ,     ";p_{T}^{HH} [GeV];Entries",   40,0,400);
+
     if (fChain == 0) return;
     
     Long64_t nentries = fChain->GetEntriesFast();
@@ -71,13 +89,15 @@ void AnaTree::Loop()
     
     vector<TLorentzVector> vBjet; //defining TLorentz vector for storing Bjets
    
-    //nentries = 100;
+    nentries = 100005;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
         // if (Cut(ientry) < 0) continue;
-        
+       
+        if (jentry % 10000 == 0) std::cout << "On entry " << jentry << std::endl;
+ 
         h_number_jets->Fill(Jet_,weight);//fill the histogram with the total number of jets
         
         int nBjets = 0;
@@ -91,13 +111,13 @@ void AnaTree::Loop()
         vBjet.clear();
         vBjet.resize(nBjets);
         int k=0;
-        
+       
+ 
         if(Jet_ < 4) continue; //selecting at least 4 jets (Jet_ is the length of the array containing jets)
         //cout<<"Number of selected jets=   "<<Jet_<<endl;
         //cout<<"Number of B jets=   "<<nBjets<<endl;
         if(nBjets < 4) continue; //selecting at least 4 b-tagged jets
         //if(nBjets < 4 || nBjets >4) continue;
-        
         bool keepEvent;
         keepEvent = true;
         
@@ -108,7 +128,6 @@ void AnaTree::Loop()
         }
         
         if (keepEvent == false) continue;
-        
         for(int i=0; i<Jet_; i++){
             if(Jet_BTag[i] == 1){
                 TLorentzVector temp1;
@@ -137,7 +156,7 @@ void AnaTree::Loop()
         
         
         
-        std::cout<< "****************" << endl;
+        if (_verbose) std::cout<< "****************" << endl;
         
         
         
@@ -145,7 +164,7 @@ void AnaTree::Loop()
         for(int second=1;second<4; second++){
             vjetTemp1 = vBjet.at(first) + vBjet.at(second);
             invMass1 = vjetTemp1.M();
-            cout<< "Invariant Mass 1 =  "<< invMass1 << endl;
+            if (_verbose) cout<< "Invariant Mass 1 =  "<< invMass1 << endl;
             vjetTemp2.SetPtEtaPhiM(0.,0.,0.,0.); // resetting
             for(int left=1; left<4; left++){
                 if(left!= second){
@@ -153,7 +172,7 @@ void AnaTree::Loop()
                 }
             }
             invMass2 = vjetTemp2.M();
-            cout<< "Invariant Mass 2 =  "<< invMass2 << endl;
+            if (_verbose) cout<< "Invariant Mass 2 =  "<< invMass2 << endl;
             
             diffNew = abs(invMass1 - invMass2);
             
@@ -165,16 +184,16 @@ void AnaTree::Loop()
         }
         
   
-        cout<< "  Best Second = "<< bestSecond << endl;
+        if (_verbose) cout<< "  Best Second = "<< bestSecond << endl;
         couple1 = vBjet.at(first) + vBjet.at(bestSecond);
-        cout<< "  Best Invariant Mass 1 =  "<< couple1.M() << endl;
+        if (_verbose) cout<< "  Best Invariant Mass 1 =  "<< couple1.M() << endl;
         
         for(int left=0; left<4; left++){
             if(left != first && left!= bestSecond){
                 couple2 += vBjet.at(left);
             }
         }
-        cout<< "  Best Invariant Mass 2 =  "<< couple2.M() << endl;
+        if (_verbose) cout<< "  Best Invariant Mass 2 =  "<< couple2.M() << endl;
         TLorentzVector temp_new;
         if(couple2.M() > couple1.M()){
             temp_new=couple1;
@@ -182,12 +201,15 @@ void AnaTree::Loop()
             couple2=temp_new;
         }
 
-        cout<< "    Best Invariant Mass 1 =  "<< couple1.M() << endl;
-        cout<< "    Best Invariant Mass 2 =  "<< couple2.M() << endl;
+        if (_verbose) cout<< "    Best Invariant Mass 1 =  "<< couple1.M() << endl;
+        if (_verbose) cout<< "    Best Invariant Mass 2 =  "<< couple2.M() << endl;
 
         h_lead_inv_mass->Fill(couple1.M(),weight);
         h_sub_inv_mass->Fill(couple2.M(),weight);
-        
+        h_diHiggs_mass->Fill((couple1+couple2).M(),weight);
+        h_diHiggs_pT->Fill((couple1+couple2).Pt(),weight);
+	
+
         if(abs(couple1.M()-125) < 40){
             h_lead_inv_mass_cut->Fill(couple1.M(),weight);
         }
@@ -207,29 +229,44 @@ void AnaTree::Loop()
     h_sub_inv_mass->Write();
     h_lead_inv_mass_cut->Write();
     h_sub_inv_mass_cut->Write();
+    h_diHiggs_mass->Write();
+    h_diHiggs_pT->Write();
 
-    //new TCanvas;
-    TCanvas *c = new TCanvas("c");
+    /*
+    TCanvas *c1 = new TCanvas("c1");
     h_number_jets->Draw();
-    c->SaveAs("Plots/Number_Jets.pdf");
-    new TCanvas;
+    c1->SaveAs("Plots/Number_Jets.pdf");
+    TCanvas *c2 = new TCanvas("c2");
     h_number_Bjets->Draw();
-    new TCanvas;
+    c2->SaveAs("Plots/Number_bJets.pdf");
+    TCanvas *c3 = new TCanvas("c3");
     h_PT_jets->Draw();
-    new TCanvas;
+    c3->SaveAs("Plots/Pt_Jets.pdf");
+    TCanvas *c4 = new TCanvas("c4");
     h_PT_Bjets->Draw();
-    new TCanvas;
+    c4->SaveAs("Plots/Pt_bJets.pdf");
+    TCanvas *c5 = new TCanvas("c5");
     h_Eta_Bjets->Draw();
-    new TCanvas;
+    c5->SaveAs("Plots/Eta_bJets.pdf");
+    TCanvas *c6 = new TCanvas("c6");
     h_lead_inv_mass->Draw();
-    new TCanvas;
+    c6->SaveAs("Plots/Lead_invMass.pdf");
+    TCanvas *c7 = new TCanvas("c7");
     h_sub_inv_mass->Draw();
-    new TCanvas;
+    c7->SaveAs("Plots/Sub_invMass.pdf");
+    TCanvas *c8 = new TCanvas("c8");
     h_lead_inv_mass_cut->Draw();
-    new TCanvas;
+    c8->SaveAs("Plots/Lead_invMass_cut.pdf");
+    TCanvas *c9 = new TCanvas("c9");
     h_sub_inv_mass_cut->Draw();
-
-
+    c9->SaveAs("Plots/Sub_invMass_cut.pdf");
+    TCanvas *c10 = new TCanvas("c10");
+    h_diHiggs_mass->Draw();
+    c10->SaveAs("Plots/diHiggs_mass.pdf");
+    TCanvas *c11 = new TCanvas("c11");
+    h_diHiggs_pT->Draw();
+    c11->SaveAs("Plots/diHiggs_Pt.pdf");
+*/
      //c->SaveAs("Plots/Number_Jets.pdf");
 }
 

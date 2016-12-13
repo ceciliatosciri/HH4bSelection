@@ -24,20 +24,20 @@
 
 // Fixed size dimensions of array or collections stored in the TTree if any.
 const Int_t kMaxEvent = 1;
-const Int_t kMaxParticle = 4635;
-const Int_t kMaxTrack = 246;
-const Int_t kMaxTower = 508;
-const Int_t kMaxEFlowTrack = 246;
-const Int_t kMaxEFlowPhoton = 217;
-const Int_t kMaxEFlowNeutralHadron = 239;
-const Int_t kMaxGenJet = 15;
-const Int_t kMaxGenMissingET = 1;
-const Int_t kMaxJet = 15;
-const Int_t kMaxElectron = 1;
-const Int_t kMaxPhoton = 1;
-const Int_t kMaxMuon = 1;
-const Int_t kMaxMissingET = 1;
-const Int_t kMaxScalarHT = 1;
+const Int_t kMaxParticle = 10000;//4635;
+const Int_t kMaxTrack = 1000;//246;
+const Int_t kMaxTower = 1000;//508;
+const Int_t kMaxEFlowTrack = 1000;//246;
+const Int_t kMaxEFlowPhoton = 1000;//217;
+const Int_t kMaxEFlowNeutralHadron = 1000;//239;
+const Int_t kMaxGenJet = 100;//15;
+const Int_t kMaxGenMissingET = 10;//1;
+const Int_t kMaxJet = 100;//15;
+const Int_t kMaxElectron = 10;//1;
+const Int_t kMaxPhoton = 10;//1;
+const Int_t kMaxMuon = 10;//1;
+const Int_t kMaxMissingET = 10;//1;
+const Int_t kMaxScalarHT = 10;//1;
 
 class AnaTree {
 public :
