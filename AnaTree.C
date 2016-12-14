@@ -89,7 +89,7 @@ void AnaTree::Loop()
     
     vector<TLorentzVector> vBjet; //defining TLorentz vector for storing Bjets
    
-    nentries = 100005;
+    //nentries = 100005;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         Long64_t ientry = LoadTree(jentry);
         if (ientry < 0) break;
