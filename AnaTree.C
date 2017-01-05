@@ -80,6 +80,20 @@ void AnaTree::Loop()
     TH1F *h_sub_inv_mass_cut  = new TH1F ("hSubInvMassCut" , ";M_{H}^{sub} [GeV];Entries",  125,0,350);
     TH1F *h_diHiggs_mass      = new TH1F ("hdiHiggsMass" ,   ";M_{HH} [GeV];Entries",       300,0,900);
     TH1F *h_diHiggs_pT        = new TH1F ("hdiHiggsPt" ,     ";p_{T}^{HH} [GeV];Entries",   40,0,400);
+    TH1F *h_diHiggs_mass_cut  = new TH1F ("hdiHiggsMassCut" ,";M_{HH} [GeV];Entries",       300,0,900);
+    TH1F *h_diHiggs_pT_cut    = new TH1F ("hdiHiggsPtCut" ,  ";p_{T}^{HH} [GeV];Entries",   40,0,400);
+    TH1F *h_deltaEta1         = new TH1F ("deltaEta1" ,      ";#Delta#eta      ;Entries",   30,0,3);
+    TH1F *h_deltaEta2         = new TH1F ("deltaEta2" ,      ";#Delta#eta      ;Entries",   30,0,3);
+    TH1F *h_deltaPhi1         = new TH1F ("deltaPhi1" ,      ";#Delta#phi      ;Entries",   80,-4,4);
+    TH1F *h_deltaPhi2         = new TH1F ("deltaPhi2" ,      ";#Delta#phi      ;Entries",   80,-4,4);
+    TH1F *h_lead_Eta          = new TH1F ("hLeadEta" ,       ";#eta            ;Entries",   80,-4,4);
+    TH1F *h_sub_Eta           = new TH1F ("hSubEta" ,        ";#eta            ;Entries",   80,-4,4);
+    TH1F *h_lead_Phi          = new TH1F ("hLeadPhi" ,       ";#phi            ;Entries",   80,-4,4);
+    TH1F *h_sub_Phi           = new TH1F ("hSubPhi" ,        ";#phi            ;Entries",   80,-4,4);
+    TH1F *h_lead_E            = new TH1F ("hLeadE" ,         ";E [GeV]         ;Entries",   80,0,800);
+    TH1F *h_sub_E             = new TH1F ("hSubE" ,          ";E [GeV]         ;Entries",   80,0,800);
+
+
 
     if (fChain == 0) return;
     
@@ -118,19 +132,12 @@ void AnaTree::Loop()
         //cout<<"Number of B jets=   "<<nBjets<<endl;
         if(nBjets < 4) continue; //selecting at least 4 b-tagged jets
         //if(nBjets < 4 || nBjets >4) continue;
-        bool keepEvent;
-        keepEvent = true;
         
-        for (int j=0; j<Jet_; j++){
-            if ((Jet_PT[j] < 40) || Jet_Eta[j] > 2.5 || Jet_Eta[j] < -2.5) {
-                keepEvent = false;  //cut on PT jets REQUIREMENT:PT>=40 GeV //cut on Eta jets REQUIREMENT |eta|>2.5
-            }
-        }
         
-        if (keepEvent == false) continue;
         for(int i=0; i<Jet_; i++){
-            if(Jet_BTag[i] == 1){
-                TLorentzVector temp1;
+	    TLorentzVector temp1;
+            if(Jet_BTag[i] == 1 && Jet_PT[i] > 40 && Jet_Eta[i] < 2.5 && Jet_Eta[i] > -2.5){
+                //cut on PT jets REQUIREMENT:PT>=40 GeV //cut on Eta jets REQUIREMENT |eta|>2.5
                 temp1.SetPtEtaPhiM(Jet_PT[i],Jet_Eta[i],Jet_Phi[i],Jet_Mass[i]);
                 vBjet.at(k) = temp1;
                 //cout<<"Bjet number "<< k <<" with Pt = "<< vBjet.at(k).Pt()<<endl;
@@ -141,7 +148,12 @@ void AnaTree::Loop()
             
         }
         
-        
+        //cout<<"Bjet number passing cuts   "<< k <<endl;
+        if (k<4) {
+          //cout<< "Not enough b jets!      "<<endl;
+          continue;
+           }
+
         for(int j=0; j<4; j++){ //selecting the first 4 Bjets
             h_PT_Bjets->Fill(vBjet.at(j).Pt(),weight);
             h_Eta_Bjets->Fill(vBjet.at(j).Eta(),weight);
@@ -160,7 +172,7 @@ void AnaTree::Loop()
         
         
         
-        int first=0; //take the first Bjet and make all the possible couples
+        int first=0; //take the first b jet and make all the possible couples
         for(int second=1;second<4; second++){
             vjetTemp1 = vBjet.at(first) + vBjet.at(second);
             invMass1 = vjetTemp1.M();
@@ -182,23 +194,39 @@ void AnaTree::Loop()
             }
             
         }
-        
-  
+          
+        std::vector<TLorentzVector> couple1Bjets;
+        std::vector<TLorentzVector> couple2Bjets;
+        couple1Bjets.resize(2);
+        couple2Bjets.resize(2);
+
         if (_verbose) cout<< "  Best Second = "<< bestSecond << endl;
         couple1 = vBjet.at(first) + vBjet.at(bestSecond);
+        couple1Bjets.at(0) = vBjet.at(first);
+        couple1Bjets.at(1) = vBjet.at(bestSecond);
         if (_verbose) cout<< "  Best Invariant Mass 1 =  "<< couple1.M() << endl;
         
+        int index = 0;
         for(int left=0; left<4; left++){
             if(left != first && left!= bestSecond){
                 couple2 += vBjet.at(left);
+                couple2Bjets.at(index) = vBjet.at(left);
+                index++;
             }
         }
         if (_verbose) cout<< "  Best Invariant Mass 2 =  "<< couple2.M() << endl;
+
+        // Ordering
         TLorentzVector temp_new;
+        std::vector<TLorentzVector> temp_v;
         if(couple2.M() > couple1.M()){
             temp_new=couple1;
             couple1=couple2;
             couple2=temp_new;
+
+            temp_v = couple1Bjets;
+            couple1Bjets = couple2Bjets;
+            couple2Bjets = temp_v;
         }
 
         if (_verbose) cout<< "    Best Invariant Mass 1 =  "<< couple1.M() << endl;
@@ -207,14 +235,32 @@ void AnaTree::Loop()
         h_lead_inv_mass->Fill(couple1.M(),weight);
         h_sub_inv_mass->Fill(couple2.M(),weight);
         h_diHiggs_mass->Fill((couple1+couple2).M(),weight);
-        h_diHiggs_pT->Fill((couple1+couple2).Pt(),weight);
-	
-
-        if(abs(couple1.M()-125) < 40){
+        h_diHiggs_pT->Fill((couple1+couple2).Pt(),weight);  
+ 
+        if((abs(couple1.M()-125) < 40) && (abs(couple2.M()-125) < 40)){
             h_lead_inv_mass_cut->Fill(couple1.M(),weight);
-        }
-        if(abs(couple2.M()-125) < 40){
             h_sub_inv_mass_cut->Fill(couple2.M(),weight);
+            h_diHiggs_mass_cut->Fill((couple1+couple2).M(),weight);
+            h_diHiggs_pT_cut->Fill((couple1+couple2).Pt(),weight);
+	  
+            h_lead_Eta->Fill(couple1.Eta(),weight);
+            h_sub_Eta->Fill(couple2.Eta(),weight);
+            h_lead_Phi->Fill(couple1.Phi(),weight);
+            h_sub_Phi->Fill(couple2.Phi(),weight);
+            h_lead_E->Fill(couple1.E(),weight);
+            h_sub_E->Fill(couple2.E(),weight);
+
+            double deltaEta = abs( (couple1Bjets.at(0)).Eta() - (couple1Bjets.at(1)).Eta() );
+            h_deltaEta1->Fill(deltaEta,weight);
+            deltaEta = abs( (couple2Bjets.at(0)).Eta() - (couple2Bjets.at(1)).Eta() );
+            h_deltaEta2->Fill(deltaEta,weight);
+
+            double deltaPhi = couple1Bjets.at(0).DeltaPhi( couple1Bjets.at(1) );
+            h_deltaPhi1->Fill(deltaPhi,weight);
+            deltaPhi = couple2Bjets.at(0).DeltaPhi( couple2Bjets.at(1) );
+            h_deltaPhi2->Fill(deltaPhi,weight);
+
+
         }
                 
     } // end loop over entries
@@ -231,6 +277,18 @@ void AnaTree::Loop()
     h_sub_inv_mass_cut->Write();
     h_diHiggs_mass->Write();
     h_diHiggs_pT->Write();
+    h_diHiggs_mass_cut->Write();
+    h_diHiggs_pT_cut->Write();
+    h_deltaEta1->Write();
+    h_deltaEta2->Write();
+    h_deltaPhi1->Write();
+    h_deltaPhi2->Write();
+    h_lead_Eta->Write();
+    h_sub_Eta->Write();
+    h_lead_Phi->Write();
+    h_sub_Phi->Write();
+    h_lead_E->Write();
+    h_sub_E->Write();
 
     /*
     TCanvas *c1 = new TCanvas("c1");
