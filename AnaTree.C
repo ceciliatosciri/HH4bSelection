@@ -1,8 +1,13 @@
 #define AnaTree_cxx
+
 #include "AnaTree.h"
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
+#include <TTree.h>
+
+#include <vector>
+#include <TLorentzVector.h>
 
 #include <iostream>
 
@@ -22,7 +27,11 @@ void AnaTree::Loop()
     //    ientry is the entry number in the current Tree
     //  Note that the argument to GetEntry must be:
     //    jentry for TChain::GetEntry
-    //    ientry for TTree::GetEntry and TBranch::GetEntry
+    //    ientry for TTree::GetEntry and ("dijet0_Pt", "double", &dijet0_Pt);
+    //        tree->Branch("dijet0_Eta", "double", &dijet0_Eta);
+    //            tree->Branch("dijet0_Phi", "double", &dijet0_Phi);
+    //                tree->Branch("dijet0_E", "double", &dijet0_E);
+    //                Branch::GetEntry
     //
     //       To read only selected branches, Insert statements like:
     // METHOD1:
@@ -102,7 +111,65 @@ void AnaTree::Loop()
     Long64_t nbytes = 0, nb = 0;
     
     vector<TLorentzVector> vBjet; //defining TLorentz vector for storing Bjets
-   
+ 
+    //Defining vectors of TLorentz vectors to save the four b jet and the two di-jet in a ROOT TTree
+    vector<TLorentzVector> pfjets;
+    pfjets.resize(4);
+    vector<TLorentzVector> dijets; 
+    dijets.resize(2);
+    vector<double> test = {1,2,3,4};
+    double jet0_Pt, jet1_Pt, jet2_Pt, jet3_Pt;
+    double jet0_Eta, jet1_Eta, jet2_Eta, jet3_Eta;
+    double jet0_Phi, jet1_Phi, jet2_Phi, jet3_Phi;
+    double jet0_E, jet1_E, jet2_E, jet3_E;
+    double dijet0_Pt, dijet0_Eta, dijet0_Phi, dijet0_E;
+    double dijet1_Pt, dijet1_Eta, dijet1_Phi, dijet1_E;
+
+    TFile* outFile = new TFile(outFileName, "RECREATE");
+    
+    /*TFile file1("selected_signal.root","RECREATE","");
+    TFile file2("selected_4b.root","RECREATE","");
+    TFile file3("selected_4j.root","RECREATE","");
+    TFile file4("selected_bbjj.root","RECREATE","");
+    TFile file5("selected_tt_bbjjjj.root","RECREATE","");
+*/
+    //file1.SetCompressionLevel(1);
+    //Defining the tree containing all the branches
+    TTree *tree = new TTree("tree","TTree");
+
+    tree->Branch("jet0_Pt", &jet0_Pt, "jet0_Pt/D");
+    tree->Branch("jet1_Pt", &jet1_Pt, "jet1_Pt/D");
+    tree->Branch("jet2_Pt", &jet2_Pt, "jet2_Pt/D");
+    tree->Branch("jet3_Pt", &jet3_Pt, "jet3_Pt/D");
+
+    tree->Branch("jet0_Eta", &jet0_Eta, "jet0_Eta/D");
+    tree->Branch("jet1_Eta", &jet1_Eta, "jet1_Eta/D");
+    tree->Branch("jet2_Eta", &jet2_Eta, "jet2_Eta/D");
+    tree->Branch("jet3_Eta", &jet3_Eta, "jet3_Eta/D");
+
+    tree->Branch("jet0_Phi", &jet0_Phi, "jet0_Phi/D");
+    tree->Branch("jet1_Phi", &jet1_Phi, "jet1_Phi/D");
+    tree->Branch("jet2_Phi", &jet2_Phi, "jet2_Phi/D");
+    tree->Branch("jet3_Phi", &jet3_Phi, "jet3_Phi/D");
+
+    tree->Branch("jet0_E", &jet0_E, "jet0_E/D");
+    tree->Branch("jet1_E", &jet1_E, "jet1_E/D");
+    tree->Branch("jet2_E", &jet2_E, "jet2_E/D");
+    tree->Branch("jet3_E", &jet3_E, "jet3_E/D");
+
+    tree->Branch("dijet0_Pt",  &dijet0_Pt,  "dijet0_Pt/D");
+    tree->Branch("dijet0_Eta", &dijet0_Eta, "dijet0_Eta/D");
+    tree->Branch("dijet0_Phi", &dijet0_Phi, "dijet0_Phi/D");
+    tree->Branch("dijet0_E",   &dijet0_E,   "dijet0_E/D");
+
+    tree->Branch("dijet1_Pt",  &dijet1_Pt,  "dijet1_Pt/D");
+    tree->Branch("dijet1_Eta", &dijet1_Eta, "dijet1_Eta/D");
+    tree->Branch("dijet1_Phi", &dijet1_Phi, "dijet1_Phi/D");
+    tree->Branch("dijet1_E",   &dijet1_E,   "dijet1_E/D");
+
+
+    std::cout << "Start" << std::endl;
+    //nentries = 1000;
     //nentries = 100005;
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         Long64_t ientry = LoadTree(jentry);
@@ -110,15 +177,20 @@ void AnaTree::Loop()
         nb = fChain->GetEntry(jentry);   nbytes += nb;
         // if (Cut(ientry) < 0) continue;
        
-        if (jentry % 10000 == 0) std::cout << "On entry " << jentry << std::endl;
- 
+        //if (jentry % 10000 == 0) std::cout << "On entry " << jentry << std::endl;
         h_number_jets->Fill(Jet_,weight);//fill the histogram with the total number of jets
         
         int nBjets = 0;
         
         for (int i=0; i<Jet_; i++){
-            if(Jet_BTag[i] == 1) nBjets++;
-        }
+          if(Jet_BTag[i] == 1) {
+	    nBjets++;
+            //std::cout << "Particle_PID   " << Particle_PID[i]     << std::endl;//it gives the ID of the parent decaying into jets (h,g)
+            //std::cout << "Jet_BTagAlgo   " << Jet_BTagAlgo[i]     << std::endl;
+            //std::cout << "Jet_Flavor     " << Jet_Flavor[i]       << std::endl;
+            //std::cout << "GenJet_Flavor  " << GenJet_Flavor[i]    << std::endl;
+	  }
+	}
         
         h_number_Bjets->Fill(nBjets,weight);//fill the histogram with the total number of B-jets
         
@@ -236,7 +308,62 @@ void AnaTree::Loop()
         h_sub_inv_mass->Fill(couple2.M(),weight);
         h_diHiggs_mass->Fill((couple1+couple2).M(),weight);
         h_diHiggs_pT->Fill((couple1+couple2).Pt(),weight);  
- 
+
+        //Assigning values to pfjets and dijets to save in a ROOT TTree
+
+        if ((couple1Bjets.at(0)).Pt() > (couple1Bjets.at(1)).Pt()){
+           pfjets.at(0) = couple1Bjets.at(0);
+           pfjets.at(1) = couple1Bjets.at(1);
+           }
+        else {
+           pfjets.at(0) = couple1Bjets.at(1);
+           pfjets.at(1) = couple1Bjets.at(0);
+           }
+       if ((couple2Bjets.at(0)).Pt() > (couple2Bjets.at(1)).Pt()){
+           pfjets.at(2) = couple2Bjets.at(0);
+           pfjets.at(3) = couple2Bjets.at(1);
+           }
+        else {
+           pfjets.at(2) = couple2Bjets.at(1);
+           pfjets.at(3) = couple2Bjets.at(0);
+           }
+   
+        dijets.at(0) = couple1;
+        dijets.at(1) = couple2;
+
+        //Taking variables 1 by 1 to save in the ROOT file
+        jet0_Pt = (double) pfjets.at(0).Pt();
+        jet1_Pt = (double) pfjets.at(1).Pt();
+        jet2_Pt = (double) pfjets.at(2).Pt();
+        jet3_Pt = (double) pfjets.at(3).Pt();
+
+        jet0_Eta = (double) pfjets.at(0).Eta();
+        jet1_Eta = (double) pfjets.at(1).Eta();
+        jet2_Eta = (double) pfjets.at(2).Eta();
+        jet3_Eta = (double) pfjets.at(3).Eta();
+
+        jet0_Phi = (double) pfjets.at(0).Phi();
+        jet1_Phi = (double) pfjets.at(1).Phi();
+        jet2_Phi = (double) pfjets.at(2).Phi();
+        jet3_Phi = (double) pfjets.at(3).Phi();
+
+        jet0_E = (double) pfjets.at(0).E();
+        jet1_E = (double) pfjets.at(1).E();
+        jet2_E = (double) pfjets.at(2).E();
+        jet3_E = (double) pfjets.at(3).E();
+
+        dijet0_Pt = (double) dijets.at(0).Pt();
+        dijet0_Eta = (double) dijets.at(0).Eta();
+        dijet0_Phi = (double) dijets.at(0).Phi();
+        dijet0_E = (double) dijets.at(0).E();
+
+        dijet1_Pt = (double) dijets.at(1).Pt();
+        dijet1_Eta = (double) dijets.at(1).Eta();
+        dijet1_Phi = (double) dijets.at(1).Phi();
+        dijet1_E = (double) dijets.at(1).E();
+
+        //tree->Print();
+
         if((abs(couple1.M()-125) < 40) && (abs(couple2.M()-125) < 40)){
             h_lead_inv_mass_cut->Fill(couple1.M(),weight);
             h_sub_inv_mass_cut->Fill(couple2.M(),weight);
@@ -259,13 +386,19 @@ void AnaTree::Loop()
             h_deltaPhi1->Fill(deltaPhi,weight);
             deltaPhi = couple2Bjets.at(0).DeltaPhi( couple2Bjets.at(1) );
             h_deltaPhi2->Fill(deltaPhi,weight);
-
+    
+            tree->Fill();
 
         }
                 
     } // end loop over entries
 
-    TFile* outFile = new TFile(outFileName, "RECREATE");
+    outFile->cd();
+    tree->Write();
+    tree->Print();
+    //tree->Scan("jet0_Pt");
+    outFile->Close();
+    /*TFile* outFile = new TFile(outFileName, "RECREATE");
     h_number_jets->Write();
     h_number_Bjets->Write();
     h_PT_jets->Write();
@@ -290,7 +423,7 @@ void AnaTree::Loop()
     h_lead_E->Write();
     h_sub_E->Write();
 
-    /*
+    
     TCanvas *c1 = new TCanvas("c1");
     h_number_jets->Draw();
     c1->SaveAs("Plots/Number_Jets.pdf");
