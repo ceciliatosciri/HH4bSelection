@@ -41,7 +41,7 @@ void AnaTree::Loop()
     //    fChain->GetEntry(jentry);       //read all branches
     //by  b_branchname->GetEntry(ientry); //read only this branch
 
-    bool _verbose = false;
+    bool _verbose = true;
 
     double weight = -9999;
     TString outFileName;
@@ -124,6 +124,7 @@ void AnaTree::Loop()
     double jet0_E, jet1_E, jet2_E, jet3_E;
     double dijet0_Pt, dijet0_Eta, dijet0_Phi, dijet0_E;
     double dijet1_Pt, dijet1_Eta, dijet1_Phi, dijet1_E;
+    double HH_Pt, HH_Eta, HH_Phi, HH_E;
 
     TFile* outFile = new TFile(outFileName, "RECREATE");
     
@@ -167,6 +168,10 @@ void AnaTree::Loop()
     tree->Branch("dijet1_Phi", &dijet1_Phi, "dijet1_Phi/D");
     tree->Branch("dijet1_E",   &dijet1_E,   "dijet1_E/D");
 
+    tree->Branch("HH_Pt",   &HH_Pt,   "HH_Pt/D");
+    tree->Branch("HH_Eta",  &HH_Eta,  "HH_Eta/D");
+    tree->Branch("HH_Phi",  &HH_Phi,  "HH_Phi/D");
+    tree->Branch("HH_E",    &HH_E,    "HH_E/D");
 
     std::cout << "Start" << std::endl;
     //nentries = 1000;
@@ -234,7 +239,7 @@ void AnaTree::Loop()
         double invMass1, invMass2;
         int bestFirst, bestSecond=0;
         
-        TLorentzVector vjetTemp1, vjetTemp2, couple1, couple2;
+        TLorentzVector vjetTemp1, vjetTemp2, couple1, couple2, HH_final;
         double diffNew, diffOld = 1e9;
         double M_Higgs = 125.;
         
@@ -301,6 +306,8 @@ void AnaTree::Loop()
             couple2Bjets = temp_v;
         }
 
+	HH_final = couple1+couple2;
+ 
         if (_verbose) cout<< "    Best Invariant Mass 1 =  "<< couple1.M() << endl;
         if (_verbose) cout<< "    Best Invariant Mass 2 =  "<< couple2.M() << endl;
 
@@ -352,15 +359,20 @@ void AnaTree::Loop()
         jet2_E = (double) pfjets.at(2).E();
         jet3_E = (double) pfjets.at(3).E();
 
-        dijet0_Pt = (double) dijets.at(0).Pt();
+        dijet0_Pt =  (double) dijets.at(0).Pt();
         dijet0_Eta = (double) dijets.at(0).Eta();
         dijet0_Phi = (double) dijets.at(0).Phi();
-        dijet0_E = (double) dijets.at(0).E();
+        dijet0_E =   (double) dijets.at(0).E();
 
-        dijet1_Pt = (double) dijets.at(1).Pt();
+        dijet1_Pt =  (double) dijets.at(1).Pt();
         dijet1_Eta = (double) dijets.at(1).Eta();
         dijet1_Phi = (double) dijets.at(1).Phi();
-        dijet1_E = (double) dijets.at(1).E();
+        dijet1_E =   (double) dijets.at(1).E();
+
+	HH_Pt =  (double) HH_final.Pt();
+	HH_Eta = (double) HH_final.Eta();
+	HH_Phi = (double) HH_final.Phi();
+	HH_E =   (double) HH_final.E();
 
         //tree->Print();
 
